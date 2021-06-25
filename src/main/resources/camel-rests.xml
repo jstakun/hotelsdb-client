@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rests xmlns="http://camel.apache.org/schema/spring">
+    <rest id="cache" path="/camel">
+        <get uri="/v1/cache/{cid}" id="getFromCacheUnlimited">
+            <to uri="direct:getFromCacheUnlimited"/>
+        </get>
+        <get uri="/v1/cache/{cid}/{limit}" id="getFromCache">
+            <to uri="direct:getFromCache"/>
+        </get>
+        <get uri="/v1/cache/{cid}/sortBy/{sortBy}/{sortOrder}/{limit}" id="getFromCacheSorted">
+            <to uri="direct:getFromCacheSorted"/>
+        </get>
+        <get uri="/v1/count/{cid}" id="getFromCacheCount">
+            <to uri="direct:getFromCacheCount"/>
+        </get>
+        <get uri="/v1/cache/{cid}/{property}/{value}" id="getByQueryFromCacheUnlimited">
+            <to uri="direct:getByQueryFromCacheUnlimited"/>
+        </get>
+        <get uri="/v1/one/{cid}/{property}/{value}" id="getByPropertyFromCache">
+            <to uri="direct:getByPropertyFromCache"/>
+        </get>
+        <get uri="/v1/getById/{cid}/{value}" id="getByIdFromCache">
+            <to uri="direct:getByIdFromCache"/>
+        </get>
+        <get uri="/v1/cache/{cid}/{property}/{value}/{limit}" id="getByQueryFromCache">
+            <to uri="direct:getByQueryFromCache"/>
+        </get>
+        <get uri="/v1/cache/{cid}/nearby/{lat}/{lng}/{distance}/{limit}" id="getNearbyFromCache">
+            <to uri="direct:getNearbyFromCache"/>
+        </get>
+        <get uri="/v1/cache/{cid}/async/nearby/{lat}/{lng}/{distance}/{limit}" id="getNearbyFromCacheAsync">
+            <to uri="seda:getNearbyFromCache?waitForTaskToComplete=Never"/>
+        </get>
+        <get uri="/v1/cache/{cid}/cheapest/nearby/{lat}/{lng}/{distance}/{limit}" id="getCheapestNearbyFromCache">
+            <to uri="direct:getCheapestNearbyFromCache"/>
+        </get>
+        <get uri="/v1/cache/{cid}/async/cheapest/nearby/{lat}/{lng}/{distance}/{limit}" id="getCheapestNearbyFromCacheAsync">
+            <to uri="seda:getCheapestNearbyFromCache?waitForTaskToComplete=Never"/>
+        </get>
+        <get uri="/v1/cache/{cid}/stars/nearby/{lat}/{lng}/{distance}/{limit}" id="getStarsNearbyFromCache">
+            <to uri="direct:getStarsNearbyFromCache"/>
+        </get>
+        <get uri="/v1/cache/{cid}/async/stars/nearby/{lat}/{lng}/{distance}/{limit}" id="getStarsNearbyFromCacheAsync">
+            <to uri="seda:getStarsNearbyFromCache?waitForTaskToComplete=Never"/>
+        </get>
+        <get uri="/v1/count/{cid}/nearby/{lat}/{lng}/{distance}" id="getNearbyFromCacheCount">
+            <to uri="direct:getNearbyFromCacheCount"/>
+        </get>
+        <post uri="/v1/cache/{cid}" id="putToCache">
+            <to uri="direct:putToCache"/>
+        </post>
+        <delete uri="/v1/cache/{cid}/{property}/{value}" id="deleteFromCache">
+            <to uri="direct:deleteFromCache"/>
+        </delete>
+    </rest>
+</rests>

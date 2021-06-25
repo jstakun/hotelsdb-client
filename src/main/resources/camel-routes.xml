@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes id="DBManager" xmlns="http://camel.apache.org/schema/spring">
+  
+  <!--  TODO --> 
+  <!--onException>  
+     <exception>java.lang.Exception</exception>
+     <handled>
+          <constant>true</constant>
+     </handled>
+     <log message="Operation failed with exception: ${exception.stacktrace}" loggingLevel="ERROR" logName="com.redhat.waw.camel"/>
+     <transform>
+          <simple>${date:now:yyyy.MM.dd HH:mm:ss} ERROR Operation failed with message: ${exception.message}</simple>
+     </transform>
+  </onException-->
+    
+  <!-- insert -->
+  
+  <route id="Put to cache">
+    <from uri="direct:putToCache"/>
+    <log message="Inserting to cache ${header.cid} document..." loggingLevel="INFO"/>
+    <marshal>
+    	<json library="Jackson" id="json"/>
+    </marshal>
+    <split parallelProcessing="true">
+      <method ref="JSonArraySplitter"/>
+      <to uri="direct:insertRecord"/>
+    </split>
+    <log message="Inserted to cache ${header.cid} ${header.DocumentCount} documents." loggingLevel="INFO"/>
+    <setBody>
+      <simple>{"count": ${header.DocumentCount}}</simple> 
+    </setBody>
+  </route>
+  
+  <route>
+    <from uri="direct:insertRecord"/>
+    <recipientList>
+      <simple>mongodb:camelMongoClient?database={{quarkus.mongodb.database}}&amp;collection=${header.cid}&amp;operation=save</simple>
+    </recipientList>
+    <log message="Inserted to collection ${header.cid} document with id ${header.CamelMongoOid}." loggingLevel="INFO"/>      
+  </route>
+  
+  <!-- delete -->
+  
+  <route id="Delete from cache">
+    <from uri="direct:deleteFromCache"/>
+    <log message="Delete from cache ${header.cid} objects matching ${header.property} : ${header.value}" loggingLevel="INFO"/>
+    <setBody>
+      <simple>{"${header.property}" : "${header.value}"}</simple>
+    </setBody>
+    <recipientList>
+      <simple>mongodb:camelMongoClient?database={{quarkus.mongodb.database}}&amp;collection=${header.cid}&amp;operation=remove</simple>
+    </recipientList>
+    <setBody>
+       <simple>{"count": ${header.CamelMongoDbRecordsAffected}}</simple>
+    </setBody>
+  </route>
+  
+  <!-- select -->
+  
+  <route id="Get from cache unlimited">
+    <from uri="direct:getFromCacheUnlimited"/>
+    <setHeader name="limit">
+      <simple>{{batchLimit}}</simple>
+    </setHeader>
+    <to uri="direct:getFromCache"/>
+  </route>
+  
+  <route id="Get from cache">
+    <from uri="direct:getFromCache"/>
+    <validate>
+      <simple>${header.limit} range '1..{{batchLimit}}'</simple>
+    </validate>
+    <log message="Get all from cache ${header.cid} with limit ${header.limit} by user ${header.authorization}" loggingLevel="INFO"/>
+    <setHeader name="CamelMongoDbSortBy">
+      <!--  descending by _id -->
+      <constant>{"_id" : -1}</constant>
+    </setHeader>
+    <setHeader name="CamelMongoDbLimit">
+      <simple>${header.limit}</simple>
+    </setHeader>
+    <setHeader name="CamelMongoDbBatchSize">
+      <constant>{{batchLimit}}</constant>
+    </setHeader>
+    <recipientList>
+      <simple>mongodb:camelMongoClient?database={{quarkus.mongodb.database}}&amp;collection=${header.cid}&amp;operation=findAll</simple>
+    </recipientList>
+    <to uri="direct:processOutput"/>
+  </route>
+  
+  <route id="Get from cache sorted">
+    <from uri="direct:getFromCacheSorted"/>
+    <validate>
+      <simple>${header.limit} range '1..{{batchLimit}}'</simple>
+    </validate>
+    <log message="Get all from cache ${header.cid} with limit ${header.limit} sorted by ${header.sortBy}: ${header.sortOrder}  by user ${header.authorization}" loggingLevel="INFO"/>
+    <setHeader name="CamelMongoDbSortBy">
+      <simple>{"${header.sortBy}" : ${header.sortOrder}}</simple>
+    </setHeader>
+    <setHeader name="CamelMongoDbLimit">
+      <simple>${header.limit}</simple>
+    </setHeader>
+    <setHeader name="CamelMongoDbBatchSize">
+      <constant>{{batchLimit}}</constant>
+    </setHeader>
+    <recipientList>
+      <simple>mongodb:camelMongoClient?database={{quarkus.mongodb.database}}&amp;collection=${header.cid}&amp;operation=findAll</simple>
+    </recipientList>
+    <to uri="direct:processOutput"/>
+  </route>
+  
+  <route id="Get from cache count">
+    <from uri="direct:getFromCacheCount"/>
+    <log message="Get count from cache ${header.cid} by user ${header.authorization}" loggingLevel="INFO"/>
+    <recipientList>
+      <simple>mongodb:camelMongoClient?database={{quarkus.mongodb.database}}&amp;collection=${header.cid}&amp;operation=count</simple>
+    </recipientList>
+    <setBody>
+       <simple>{"count": ${body}}</simple>
+    </setBody>
+  </route>
+  
+  <route id="Get by query from cache unlimited">
+    <from uri="direct:getByQueryFromCacheUnlimited"/>
+    <setHeader name="limit">
+      <simple>{{batchLimit}}</simple>
+    </setHeader>
+    <to uri="direct:getByQueryFromCache"/>
+  </route>
+  
+  <route id="Get by query from cache">
+    <from uri="direct:getByQueryFromCache"/>
+    <validate>
+      <simple>${header.limit} range '1..{{batchLimit}}'</simple>
+    </validate>
+    <log message="Get from cache ${header.cid} object matching ${header.property} : ${header.value} with limit ${header.limit} by user ${header.authorization}" loggingLevel="INFO"/>
+    <setBody>
+      <simple>{"${header.property}" : "${header.value}"}</simple>
+    </setBody>
+    <setHeader name="CamelMongoDbSortBy">
+      <simple>{"_id" : -1}</simple>
+    </setHeader>
+    <setHeader name="CamelMongoDbLimit">
+      <simple>${header.limit}</simple>
+    </setHeader>
+    <recipientList>
+      <simple>mongodb:camelMongoClient?database={{quarkus.mongodb.database}}&amp;collection=${header.cid}&amp;operation=findAll</simple>
+    </recipientList>
+    <to uri="direct:processOutput"/>
+  </route>
+  
+  <route id="Get one by property from cache">
+    <from uri="direct:getByPropertyFromCache"/>
+    <log message="Get from cache ${header.cid} object matching ${header.property} : ${header.value} with limit ${header.limit} by user ${header.authorization}" loggingLevel="INFO"/>
+    <setBody>
+      <simple>{"${header.property}" : "${header.value}"}</simple>
+    </setBody>
+    <recipientList>
+        <simple>mongodb:camelMongoClient?database={{quarkus.mongodb.database}}&amp;collection=${header.cid}&amp;operation=findOneByQuery</simple>
+     </recipientList>
+     <to uri="direct:processOutput"/>
+  </route>
+  
+  <route id="Get one by id from cache">
+    <from uri="direct:getByIdFromCache"/>
+    <log message="Get from cache ${header.cid} object with id : ${header.value} by user ${header.authorization}" loggingLevel="INFO"/>
+    <setBody>
+      <simple>"${header.value}"</simple>
+    </setBody>
+    <toD uri="mongodb:camelMongoClient?database={{quarkus.mongodb.database}}&amp;collection=${header.cid}&amp;operation=findById"/>
+  </route>
+  
+  <route id="Get nearby from cache">
+    <from uri="direct:getNearbyFromCache"/>
+    <validate>
+      <simple>${header.limit} range '1..{{nearbyLimit}}'</simple>
+    </validate>
+    <validate>
+      <simple>${header.distance} range '1..{{distanceLimit}}'</simple>
+    </validate>
+    <log message="Get from cache ${header.cid} documents near ${header.lat}, ${header.lng} in max distance ${header.distance} with limit ${header.limit} by user ${header.authorization}" loggingLevel="INFO"/>
+    <setBody>
+      <simple>{ "geometry" : { $near : { $geometry : { type : "Point" , coordinates : [ ${header.lng} , ${header.lat} ] } , $maxDistance : ${header.distance} } } }</simple>
+    </setBody>
+    <setHeader name="CamelMongoDbLimit">
+      <simple>${header.limit}</simple>
+    </setHeader>
+    <recipientList>
+      <simple>mongodb:camelMongoClient?database={{quarkus.mongodb.database}}&amp;collection=${header.cid}&amp;operation=findAll</simple>
+    </recipientList>
+  </route>
+  
+  <route id="Get most stars nearby from cache">
+  	<from uri="direct:getStarsNearbyFromCache" />
+  	<setHeader name="CamelMongoDbSortBy">
+      <simple>{"properties.stars" : -1}</simple> 
+    </setHeader>
+    <to uri="direct:getNearbyFromCache"/>
+  </route>
+  
+  <route id="Get most stars nearby from cache and save">
+    <from uri="seda:getStarsNearbyFromCache"/>
+    <to uri="direct:getStarsNearbyFromCache"/>
+    <setHeader name="cid">
+      <simple>cache</simple>
+    </setHeader>
+    <setBody>
+      <simple>{ "type": "FeatureCollection", "properties": { "creationDate": ${date:now} }, "_id" : "${header.lng}_${header.lat}_${header.distance}_${header.limit}_stars", "features" : ${body} }</simple>	
+    </setBody>
+    <to uri="direct:putToCache"/>
+  </route>
+  
+  <route id="Get cheapest nearby from cache">
+    <from uri="direct:getCheapestNearbyFromCache"/>
+    <validate>
+      <simple>${header.limit} range '1..{{nearbyLimit}}'</simple>
+    </validate>
+    <validate>
+      <simple>${header.distance} range '1..{{distanceLimit}}'</simple>
+    </validate>
+    <log message="Get cheapest from cache ${header.cid} documents near ${header.lat}, ${header.lng} in max distance ${header.distance} with limit ${header.limit} by user ${header.authorization}" loggingLevel="INFO"/>
+    <setBody>
+      <simple>{ "properties.minrate" : { $gt : 0 },  "geometry" : { $near : { $geometry : { type : "Point" , coordinates : [ ${header.lng} , ${header.lat} ] } , $maxDistance : ${header.distance} } } }</simple>
+    </setBody>
+    <setHeader name="CamelMongoDbLimit">
+      <simple>${header.limit}</simple>
+    </setHeader>
+    <setHeader name="CamelMongoDbSortBy">
+      <simple>{"properties.minrate" : 1}</simple>
+    </setHeader>
+    <recipientList>
+      <simple>mongodb:camelMongoClient?database={{quarkus.mongodb.database}}&amp;collection=${header.cid}&amp;operation=findAll</simple>
+    </recipientList>
+  </route>
+  
+  <route id="Get cheapest nearby from cache and save">
+    <from uri="seda:getCheapestNearbyFromCache"/>
+    <to uri="direct:getCheapestNearbyFromCache"/>
+    <setHeader name="cid">
+      <simple>cache</simple>
+    </setHeader>
+    <setBody>
+      <simple>{ "type": "FeatureCollection", "properties": { "creationDate": ${date:now} }, "_id" : "${header.lng}_${header.lat}_${header.distance}_${header.limit}_cheapest", "features" : ${body} }</simple>	
+    </setBody>
+    <to uri="direct:putToCache"/>
+  </route>
+  
+  <route id="Get nearby from cache count">
+    <from uri="direct:getNearbyFromCacheCount"/>
+    <log message="Get count from cache ${header.cid} documents near ${header.lat}, ${header.lng} in max distance ${header.distance} by user ${header.authorization}" loggingLevel="INFO"/>
+    <setBody>
+      <simple>{ "geometry" : { $near : { $geometry : { type : "Point" , coordinates : [ ${header.lng} , ${header.lat} ] } , $maxDistance : ${header.distance} } } }</simple>
+    </setBody>
+    <recipientList>
+      <simple>mongodb:camelMongoClient?database={{quarkus.mongodb.database}}&amp;collection=${header.cid}&amp;operation=count</simple>
+    </recipientList>
+  </route>
+  
+  <route id="Get nearby from cache and save">
+    <from uri="seda:getNearbyFromCache"/>
+    <to uri="direct:getNearbyFromCache"/>
+    <setHeader name="cid">
+      <simple>cache</simple>
+    </setHeader>
+    <setBody>
+      <simple>{ "type": "FeatureCollection", "properties": { "creationDate": ${date:now} }, "_id" : "${header.lng}_${header.lat}_${header.distance}_${header.limit}", "features" : ${body} }</simple>	
+    </setBody>
+    <to uri="direct:putToCache"/>
+  </route>
+  
+  <route id="Process output">
+      <from uri="direct:processOutput"/>
+      <marshal>
+         <json library="Jackson" id="json"/>    
+      </marshal>
+      <!--process ref="MongodbJSonProcessor"/-->
+    </route>
+</routes>
+
