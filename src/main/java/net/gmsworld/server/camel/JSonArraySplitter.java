@@ -31,14 +31,18 @@ public class JSonArraySplitter {
         List<String> messageList = new ArrayList<String>();
 
         Object in = exchange.getIn().getBody();
+        String inStr =new String((byte[])in);
+        String json = "";
+ 
+        if (inStr.startsWith("{")) {
+        	JSONObject inJSon = new JSONObject(inStr);
+        	byte[] data = Base64.decodeBase64(inJSon.getString("bytes"));
+        	json = new String(data);
+        } else {
+        	 logger.log(Level.SEVERE, "Invalid input: " + inStr + ". Expected json!");
+        }
         
         JSONArray jsonArray = null;
-        
-        JSONObject inJSon = new JSONObject(new String((byte[])in));
-        byte[] data = Base64.decodeBase64(inJSon.getString("bytes"));
-        String json = new String(data);
-        
-        
         if (json.startsWith("[")) {
         	jsonArray = new JSONArray(json);
         } if (json.startsWith("{")) {

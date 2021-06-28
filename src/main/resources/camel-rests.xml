@@ -1,49 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rests xmlns="http://camel.apache.org/schema/spring">
     <rest id="cache" path="/camel">
-        <get uri="/v1/cache/{cid}" id="getFromCacheUnlimited">
+        <get uri="/v1/cache/{cid}" id="getFromCacheUnlimited" produces="application/json">
             <to uri="direct:getFromCacheUnlimited"/>
         </get>
-        <get uri="/v1/cache/{cid}/{limit}" id="getFromCache">
+        <get uri="/v1/cache/{cid}/{limit}" id="getFromCache"  produces="application/json">
             <to uri="direct:getFromCache"/>
         </get>
-        <get uri="/v1/cache/{cid}/sortBy/{sortBy}/{sortOrder}/{limit}" id="getFromCacheSorted">
+        <get uri="/v1/cache/{cid}/sortBy/{sortBy}/{sortOrder}/{limit}" id="getFromCacheSorted"  produces="application/json">
             <to uri="direct:getFromCacheSorted"/>
         </get>
-        <get uri="/v1/count/{cid}" id="getFromCacheCount">
+        <get uri="/v1/count/{cid}" id="getFromCacheCount" produces="application/json">
             <to uri="direct:getFromCacheCount"/>
         </get>
-        <get uri="/v1/cache/{cid}/{property}/{value}" id="getByQueryFromCacheUnlimited">
+        <get uri="/v1/cache/{cid}/{property}/{value}" id="getByQueryFromCacheUnlimited"  produces="application/json">
             <to uri="direct:getByQueryFromCacheUnlimited"/>
         </get>
-        <get uri="/v1/one/{cid}/{property}/{value}" id="getByPropertyFromCache">
+        <get uri="/v1/one/{cid}/{property}/{value}" id="getByPropertyFromCache"  produces="application/json">
             <to uri="direct:getByPropertyFromCache"/>
         </get>
-        <get uri="/v1/getById/{cid}/{value}" id="getByIdFromCache">
+        <get uri="/v1/getById/{cid}/{value}" id="getByIdFromCache"  produces="application/json">
             <to uri="direct:getByIdFromCache"/>
         </get>
-        <get uri="/v1/cache/{cid}/{property}/{value}/{limit}" id="getByQueryFromCache">
+        <get uri="/v1/cache/{cid}/{property}/{value}/{limit}" id="getByQueryFromCache"  produces="application/json">
             <to uri="direct:getByQueryFromCache"/>
         </get>
-        <get uri="/v1/cache/{cid}/nearby/{lat}/{lng}/{distance}/{limit}" id="getNearbyFromCache">
+        <get uri="/v1/cache/{cid}/nearby/{lat}/{lng}/{distance}/{limit}" id="getNearbyFromCache"  produces="application/json">
             <to uri="direct:getNearbyFromCache"/>
         </get>
-        <get uri="/v1/cache/{cid}/async/nearby/{lat}/{lng}/{distance}/{limit}" id="getNearbyFromCacheAsync">
-            <to uri="seda:getNearbyFromCache?waitForTaskToComplete=Never"/>
+        <get uri="/v1/cache/{cid}/async/nearby/{lat}/{lng}/{distance}/{limit}" id="getNearbyFromCacheAsync"  produces="application/json">
+             <route> 
+                 <to uri="seda:getNearbyFromCache?waitForTaskToComplete=Never"/>
+                 <removeHeaders pattern="*"/>
+                 <setBody>
+                    <constant>{"status":"ok"}</constant>
+                </setBody>
+			</route>
         </get>
-        <get uri="/v1/cache/{cid}/cheapest/nearby/{lat}/{lng}/{distance}/{limit}" id="getCheapestNearbyFromCache">
+        <get uri="/v1/cache/{cid}/cheapest/nearby/{lat}/{lng}/{distance}/{limit}" id="getCheapestNearbyFromCache"  produces="application/json">
             <to uri="direct:getCheapestNearbyFromCache"/>
         </get>
-        <get uri="/v1/cache/{cid}/async/cheapest/nearby/{lat}/{lng}/{distance}/{limit}" id="getCheapestNearbyFromCacheAsync">
-            <to uri="seda:getCheapestNearbyFromCache?waitForTaskToComplete=Never"/>
+        <get uri="/v1/cache/{cid}/async/cheapest/nearby/{lat}/{lng}/{distance}/{limit}" id="getCheapestNearbyFromCacheAsync"  produces="application/json">
+             <route>
+             	<to uri="seda:getCheapestNearbyFromCache?waitForTaskToComplete=Never"/>
+                <removeHeaders pattern="*"/>
+                <setBody>
+                    <constant>{"status":"ok"}</constant>
+                </setBody>
+			</route> 
         </get>
-        <get uri="/v1/cache/{cid}/stars/nearby/{lat}/{lng}/{distance}/{limit}" id="getStarsNearbyFromCache">
+        <get uri="/v1/cache/{cid}/stars/nearby/{lat}/{lng}/{distance}/{limit}" id="getStarsNearbyFromCache"  produces="application/json">
             <to uri="direct:getStarsNearbyFromCache"/>
         </get>
-        <get uri="/v1/cache/{cid}/async/stars/nearby/{lat}/{lng}/{distance}/{limit}" id="getStarsNearbyFromCacheAsync">
-            <to uri="seda:getStarsNearbyFromCache?waitForTaskToComplete=Never"/>
+        <get uri="/v1/cache/{cid}/async/stars/nearby/{lat}/{lng}/{distance}/{limit}" id="getStarsNearbyFromCacheAsync" produces="application/json">
+            <route>
+ 				<to uri="seda:getStarsNearbyFromCache?waitForTaskToComplete=Never"/>
+                <removeHeaders pattern="*"/>
+                <setBody>
+                    <constant>{"status":"ok"}</constant>
+                </setBody>
+			</route>
         </get>
-        <get uri="/v1/count/{cid}/nearby/{lat}/{lng}/{distance}" id="getNearbyFromCacheCount">
+        <get uri="/v1/count/{cid}/nearby/{lat}/{lng}/{distance}" id="getNearbyFromCacheCount" produces="application/json">
             <to uri="direct:getNearbyFromCacheCount"/>
         </get>
         <post uri="/v1/cache/{cid}" id="putToCache">
