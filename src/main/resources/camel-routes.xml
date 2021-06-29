@@ -3,7 +3,7 @@
     <!-- insert -->
     <route id="Put to cache">
         <from uri="direct:putToCache"/>
-        <log loggingLevel="INFO" message="Inserting to cache ${header.cid} document..."/>
+        <log loggingLevel="INFO" message="Inserting to collection ${header.cid} ${header.DocumentCount} documents..."/>
         <marshal>
             <json id="json" library="Jackson"/>
         </marshal>
@@ -11,7 +11,7 @@
             <method ref="JSonArraySplitter"/>
             <to uri="direct:insertRecord"/>
         </split>
-        <log loggingLevel="INFO" message="Inserted to cache ${header.cid} ${header.DocumentCount} documents."/>
+        <log loggingLevel="INFO" message="Done"/>
         <setBody>
             <simple>{"count": ${header.DocumentCount}}</simple>
         </setBody>
@@ -27,7 +27,7 @@
     <!-- delete -->
     <route id="Delete from cache">
         <from uri="direct:deleteFromCache"/>
-        <log loggingLevel="INFO" message="Delete from cache ${header.cid} objects matching ${header.property} : ${header.value}"/>
+        <log loggingLevel="INFO" message="Delete from collection ${header.cid} objects matching ${header.property} : ${header.value}"/>
         <setBody>
             <simple>{"${header.property}" : "${header.value}"}</simple>
         </setBody>
@@ -46,6 +46,21 @@
             <simple>{{batchLimit}}</simple>
         </setHeader>
         <to uri="direct:getFromCache"/>
+    </route>
+    <route id="Get from cache and save">
+        <from uri="seda:getFromCache"/>
+        <validate>
+            <simple>${header.limit} range '1..{{batchLimit}}'</simple>
+        </validate>
+        <to uri="direct:getFromCache"/>
+        <setHeader name="cid">
+            <simple>cache</simple>
+        </setHeader>
+        <setBody>
+            <simple>{ "type": "FeatureCollection", "properties": { "creationDate": ${bean:UtilsBean.getTimestamp} }, "_id" : "${exchangeProperty.did}", "features" : ${body} }</simple>
+        </setBody>
+        <log message="Saving: ${body}"/>
+        <to uri="direct:putToCache"/>
     </route>
     <route id="Get from cache">
         <from uri="direct:getFromCache"/>
@@ -181,7 +196,7 @@
             <simple>cache</simple>
         </setHeader>
         <setBody>
-            <simple>{ "type": "FeatureCollection", "properties": { "creationDate": ${date:now} }, "_id" : "${header.lng}_${header.lat}_${header.distance}_${header.limit}_stars", "features" : ${body} }</simple>
+            <simple>{ "type": "FeatureCollection", "properties": { "creationDate": ${bean:UtilsBean.getTimestamp} }, "_id" : "${exchangeProperty.did}", "features" : ${body} }</simple>
         </setBody>
         <to uri="direct:putToCache"/>
     </route>
@@ -216,7 +231,7 @@
             <simple>cache</simple>
         </setHeader>
         <setBody>
-            <simple>{ "type": "FeatureCollection", "properties": { "creationDate": ${date:now} }, "_id" : "${header.lng}_${header.lat}_${header.distance}_${header.limit}_cheapest", "features" : ${body} }</simple>
+            <simple>{ "type": "FeatureCollection", "properties": { "creationDate": ${bean:UtilsBean.getTimestamp} }, "_id" : "${exchangeProperty.did}", "features" : ${body} }</simple>
         </setBody>
         <to uri="direct:putToCache"/>
     </route>
@@ -247,7 +262,7 @@
             <simple>cache</simple>
         </setHeader>
         <setBody>
-            <simple>{ "type": "FeatureCollection", "properties": { "creationDate": ${date:now} }, "_id" : "${header.lng}_${header.lat}_${header.distance}_${header.limit}", "features" : ${body} }</simple>
+            <simple>{ "type": "FeatureCollection", "properties": { "creationDate": ${bean:UtilsBean.getTimestamp} }, "_id" : "${exchangeProperty.did}", "features" : ${body} }</simple>
         </setBody>
         <to uri="direct:putToCache"/>
     </route>

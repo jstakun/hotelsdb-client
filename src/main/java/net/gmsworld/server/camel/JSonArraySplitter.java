@@ -11,12 +11,13 @@ import javax.inject.Named;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Handler;
-import org.apache.camel.Message;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.vertx.core.impl.StringEscapeUtils;
 
 @ApplicationScoped
 @Named("JSonArraySplitter")
@@ -38,6 +39,12 @@ public class JSonArraySplitter {
         	JSONObject inJSon = new JSONObject(inStr);
         	byte[] data = Base64.decodeBase64(inJSon.getString("bytes"));
         	json = new String(data);
+        } else if (inStr.startsWith("\"{")) {        	
+        	try {
+        		json = StringEscapeUtils.unescapeJava(inStr.substring(1, inStr.length()-1));
+        	} catch (Exception e) {
+        		logger.log(Level.SEVERE, "Invalid json input: " + inStr + "!");
+        	}
         } else {
         	 logger.log(Level.SEVERE, "Invalid input: " + inStr + ". Expected json!");
         }
@@ -47,15 +54,20 @@ public class JSonArraySplitter {
         	jsonArray = new JSONArray(json);
         } if (json.startsWith("{")) {
         	JSONObject root = new JSONObject(json);         
-        	for (Iterator<String> iter = root.keys(); iter.hasNext();) { 
-        		Object o = root.get(iter.next());
-        		if (o instanceof JSONArray) {
-        			jsonArray = (JSONArray) o;
-        			break;
+        	if (root.has("type") && StringUtils.equals("FeatureCollection", root.getString("type"))) {
+        		logger.log(Level.INFO, "Processed FeatureCollection " + root.optString("_id"));
+        	} else {
+        		for (Iterator<String> iter = root.keys(); iter.hasNext();) { 
+        			Object o = root.get(iter.next());
+        			if (o instanceof JSONArray) {
+        				jsonArray = (JSONArray) o;
+        				break;
+        			}
         		}
-        	}
+        	} 
         	
         	if (jsonArray == null) {
+        		logger.log(Level.INFO, "Adding single document");
         		messageList.add(json);
         	}
         }
