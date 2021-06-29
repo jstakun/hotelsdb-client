@@ -1,74 +1,187 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rests xmlns="http://camel.apache.org/schema/spring">
     <rest id="cache" path="/camel">
-        <get uri="/v1/cache/{cid}" id="getFromCacheUnlimited" produces="application/json">
-            <to uri="direct:getFromCacheUnlimited"/>
-        </get>
-        <get uri="/v1/cache/{cid}/{limit}" id="getFromCache"  produces="application/json">
-            <to uri="direct:getFromCache"/>
-        </get>
-        <get uri="/v1/cache/{cid}/sortBy/{sortBy}/{sortOrder}/{limit}" id="getFromCacheSorted"  produces="application/json">
-            <to uri="direct:getFromCacheSorted"/>
-        </get>
-        <get uri="/v1/count/{cid}" id="getFromCacheCount" produces="application/json">
-            <to uri="direct:getFromCacheCount"/>
-        </get>
-        <get uri="/v1/cache/{cid}/{property}/{value}" id="getByQueryFromCacheUnlimited"  produces="application/json">
-            <to uri="direct:getByQueryFromCacheUnlimited"/>
-        </get>
-        <get uri="/v1/one/{cid}/{property}/{value}" id="getByPropertyFromCache"  produces="application/json">
-            <to uri="direct:getByPropertyFromCache"/>
-        </get>
-        <get uri="/v1/getById/{cid}/{value}" id="getByIdFromCache"  produces="application/json">
-            <to uri="direct:getByIdFromCache"/>
-        </get>
-        <get uri="/v1/cache/{cid}/{property}/{value}/{limit}" id="getByQueryFromCache"  produces="application/json">
-            <to uri="direct:getByQueryFromCache"/>
-        </get>
-        <get uri="/v1/cache/{cid}/nearby/{lat}/{lng}/{distance}/{limit}" id="getNearbyFromCache"  produces="application/json">
-            <to uri="direct:getNearbyFromCache"/>
-        </get>
-        <get uri="/v1/cache/{cid}/async/nearby/{lat}/{lng}/{distance}/{limit}" id="getNearbyFromCacheAsync"  produces="application/json">
-             <route> 
-                 <to uri="seda:getNearbyFromCache?waitForTaskToComplete=Never"/>
-                 <removeHeaders pattern="*"/>
-                 <setBody>
-                    <constant>{"status":"ok"}</constant>
-                </setBody>
-			</route>
-        </get>
-        <get uri="/v1/cache/{cid}/cheapest/nearby/{lat}/{lng}/{distance}/{limit}" id="getCheapestNearbyFromCache"  produces="application/json">
-            <to uri="direct:getCheapestNearbyFromCache"/>
-        </get>
-        <get uri="/v1/cache/{cid}/async/cheapest/nearby/{lat}/{lng}/{distance}/{limit}" id="getCheapestNearbyFromCacheAsync"  produces="application/json">
-             <route>
-             	<to uri="seda:getCheapestNearbyFromCache?waitForTaskToComplete=Never"/>
-                <removeHeaders pattern="*"/>
-                <setBody>
-                    <constant>{"status":"ok"}</constant>
-                </setBody>
-			</route> 
-        </get>
-        <get uri="/v1/cache/{cid}/stars/nearby/{lat}/{lng}/{distance}/{limit}" id="getStarsNearbyFromCache"  produces="application/json">
-            <to uri="direct:getStarsNearbyFromCache"/>
-        </get>
-        <get uri="/v1/cache/{cid}/async/stars/nearby/{lat}/{lng}/{distance}/{limit}" id="getStarsNearbyFromCacheAsync" produces="application/json">
+        <get id="getFromCacheUnlimited" produces="application/json" uri="/v1/cache/{cid}">
             <route>
- 				<to uri="seda:getStarsNearbyFromCache?waitForTaskToComplete=Never"/>
+                  <doTry>
+			            <to uri="direct:getFromCacheUnlimited"/>
+                        <doCatch>
+                             <exception>java.lang.Exception</exception>
+                             <to uri="direct:logError"/>
+                        </doCatch>
+                  </doTry>
+            </route> 
+        </get>
+        <get id="getFromCache" produces="application/json" uri="/v1/cache/{cid}/{limit}">
+            <route>
+                  <doTry>
+                        <to uri="direct:getFromCache"/>
+                        <doCatch>
+                             <exception>java.lang.Exception</exception>
+                             <to uri="direct:logError"/>
+                        </doCatch>
+                  </doTry>
+            </route> 
+        </get>
+        <get id="getFromCacheSorted" produces="application/json" uri="/v1/cache/{cid}/sortBy/{sortBy}/{sortOrder}/{limit}">
+            <route>
+                  <doTry>
+                        <to uri="direct:getFromCacheSorted"/>
+                        <doCatch>
+                             <exception>java.lang.Exception</exception>
+                             <to uri="direct:logError"/>
+                        </doCatch>
+                  </doTry>
+            </route> 
+        </get>
+        <get id="getFromCacheCount" produces="application/json" uri="/v1/count/{cid}">
+            <route>
+                  <doTry>
+                        <to uri="direct:getFromCacheCount"/>
+                        <doCatch>
+                             <exception>java.lang.Exception</exception>
+                             <to uri="direct:logError"/>
+                        </doCatch>
+                  </doTry>
+            </route> 
+        </get>
+        <get id="getByQueryFromCacheUnlimited" produces="application/json" uri="/v1/cache/{cid}/{property}/{value}">
+            <route>
+                  <doTry>
+                        <to uri="direct:getByQueryFromCacheUnlimited"/>
+                        <doCatch>
+                             <exception>java.lang.Exception</exception>
+                             <to uri="direct:logError"/>
+                        </doCatch>
+                  </doTry>
+            </route> 
+        </get>
+        <get id="getByPropertyFromCache" produces="application/json" uri="/v1/one/{cid}/{property}/{value}">
+            <route>
+                  <doTry>
+                        <to uri="direct:getByPropertyFromCache"/>
+                        <doCatch>
+                             <exception>java.lang.Exception</exception>
+                             <to uri="direct:logError"/>
+                        </doCatch>
+                  </doTry>
+            </route> 
+        </get>
+        <get id="getByIdFromCache" produces="application/json" uri="/v1/getById/{cid}/{value}">
+            <route>
+                  <doTry>
+                        <to uri="direct:getByIdFromCache"/>
+                        <doCatch>
+                             <exception>java.lang.Exception</exception>
+                             <to uri="direct:logError"/>
+                        </doCatch>
+                  </doTry>
+            </route> 
+        </get>
+        <get id="getByQueryFromCache" produces="application/json" uri="/v1/cache/{cid}/{property}/{value}/{limit}">
+            <route>
+                  <doTry>
+                        <to uri="direct:getByQueryFromCache"/>
+                        <doCatch>
+                             <exception>java.lang.Exception</exception>
+                             <to uri="direct:logError"/>
+                        </doCatch>
+                  </doTry>
+            </route> 
+        </get>
+        <get id="getNearbyFromCache" produces="application/json" uri="/v1/cache/{cid}/nearby/{lat}/{lng}/{distance}/{limit}">
+            <route>
+                  <doTry>
+						<to uri="direct:getNearbyFromCache"/>
+                        <doCatch>
+                             <exception>java.lang.Exception</exception>
+                             <to uri="direct:logError"/>
+                        </doCatch>
+                  </doTry>
+            </route>  		
+        </get>
+        <get id="getNearbyFromCacheAsync" produces="application/json" uri="/v1/cache/{cid}/async/nearby/{lat}/{lng}/{distance}/{limit}">
+            <route>
+                <to uri="seda:getNearbyFromCache?waitForTaskToComplete=Never"/>
                 <removeHeaders pattern="*"/>
                 <setBody>
                     <constant>{"status":"ok"}</constant>
                 </setBody>
-			</route>
+            </route>
         </get>
-        <get uri="/v1/count/{cid}/nearby/{lat}/{lng}/{distance}" id="getNearbyFromCacheCount" produces="application/json">
-            <to uri="direct:getNearbyFromCacheCount"/>
+        <get id="getCheapestNearbyFromCache" produces="application/json" uri="/v1/cache/{cid}/cheapest/nearby/{lat}/{lng}/{distance}/{limit}">
+            <route>
+                  <doTry>
+			            <to uri="direct:getCheapestNearbyFromCache"/>
+                        <doCatch>
+                             <exception>java.lang.Exception</exception>
+                             <to uri="direct:logError"/>
+                        </doCatch>
+                  </doTry>
+            </route>
         </get>
-        <post uri="/v1/cache/{cid}" id="putToCache">
-            <to uri="direct:putToCache"/>
+        <get id="getCheapestNearbyFromCacheAsync"
+            produces="application/json" uri="/v1/cache/{cid}/async/cheapest/nearby/{lat}/{lng}/{distance}/{limit}">
+            <route>
+                <to uri="seda:getCheapestNearbyFromCache?waitForTaskToComplete=Never"/>
+                <removeHeaders pattern="*"/>
+                <setBody>
+                    <constant>{"status":"ok"}</constant>
+                </setBody>
+            </route>
+        </get>
+        <get id="getStarsNearbyFromCache" produces="application/json" uri="/v1/cache/{cid}/stars/nearby/{lat}/{lng}/{distance}/{limit}">
+            <route>
+                  <doTry>
+			            <to uri="direct:getStarsNearbyFromCache"/>
+                        <doCatch>
+                             <exception>java.lang.Exception</exception>
+                             <to uri="direct:logError"/>
+                        </doCatch>
+                  </doTry>
+            </route>
+        </get>
+        <get id="getStarsNearbyFromCacheAsync" produces="application/json" uri="/v1/cache/{cid}/async/stars/nearby/{lat}/{lng}/{distance}/{limit}">
+            <route>
+                <to uri="seda:getStarsNearbyFromCache?waitForTaskToComplete=Never"/>
+                <removeHeaders pattern="*"/>
+                <setBody>
+                    <constant>{"status":"ok"}</constant>
+                </setBody>
+            </route>
+        </get>
+        <get id="getNearbyFromCacheCount" produces="application/json" uri="/v1/count/{cid}/nearby/{lat}/{lng}/{distance}">
+            <route>
+                  <doTry>
+			            <to uri="direct:getNearbyFromCacheCount"/>
+                        <doCatch>
+                             <exception>java.lang.Exception</exception>
+                             <to uri="direct:logError"/>
+                        </doCatch>
+                  </doTry>
+            </route> 
+        </get>
+        <post id="putToCache" uri="/v1/cache/{cid}">
+            <route>
+                  <doTry>
+			            <to uri="direct:putToCache"/>
+                        <doCatch>
+                             <exception>java.lang.Exception</exception>
+                             <to uri="direct:logError"/>
+                        </doCatch>
+                  </doTry>
+            </route>
         </post>
-        <delete uri="/v1/cache/{cid}/{property}/{value}" id="deleteFromCache">
-            <to uri="direct:deleteFromCache"/>
+        <delete id="deleteFromCache" uri="/v1/cache/{cid}/{property}/{value}">
+            <route>
+                  <doTry>
+			            <to uri="direct:deleteFromCache"/>
+                        <doCatch>
+                             <exception>java.lang.Exception</exception>
+                             <to uri="direct:logError"/>
+                        </doCatch>
+                  </doTry>
+            </route>
         </delete>
     </rest>
 </rests>

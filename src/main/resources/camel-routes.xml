@@ -1,16 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <routes id="DBManager" xmlns="http://camel.apache.org/schema/spring">
-    <!--  TODO -->
-    <!--onException>  
-     <exception>java.lang.Exception</exception>
-     <handled>
-          <constant>true</constant>
-     </handled>
-     <log message="Operation failed with exception: ${exception.stacktrace}" loggingLevel="ERROR" logName="com.redhat.waw.camel"/>
-     <transform>
-          <simple>${date:now:yyyy.MM.dd HH:mm:ss} ERROR Operation failed with message: ${exception.message}</simple>
-     </transform>
-  </onException-->
     <!-- insert -->
     <route id="Put to cache">
         <from uri="direct:putToCache"/>
@@ -26,8 +15,8 @@
         <setBody>
             <simple>{"count": ${header.DocumentCount}}</simple>
         </setBody>
-         <removeHeaders pattern="*"/> 
-   </route>
+        <removeHeaders pattern="*"/>
+    </route>
     <route id="_route1">
         <from uri="direct:insertRecord"/>
         <recipientList>
@@ -48,7 +37,7 @@
         <setBody>
             <simple>{"count": ${header.CamelMongoDbRecordsAffected}}</simple>
         </setBody>
-        <removeHeaders pattern="*"/> 
+        <removeHeaders pattern="*"/>
     </route>
     <!-- select -->
     <route id="Get from cache unlimited">
@@ -108,7 +97,7 @@
         <setBody>
             <simple>{"count": ${body}}</simple>
         </setBody>
-        <removeHeaders pattern="*"/> 
+        <removeHeaders pattern="*"/>
     </route>
     <route id="Get by query from cache unlimited">
         <from uri="direct:getByQueryFromCacheUnlimited"/>
@@ -155,7 +144,7 @@
             <simple>"${header.value}"</simple>
         </setBody>
         <toD uri="mongodb:camelMongoClient?database={{quarkus.mongodb.database}}&amp;collection=${header.cid}&amp;operation=findById"/>
-        <removeHeaders pattern="*"/> 
+        <removeHeaders pattern="*"/>
     </route>
     <route id="Get nearby from cache">
         <from uri="direct:getNearbyFromCache"/>
@@ -237,13 +226,10 @@
             <simple>${header.distance} range '1..{{distanceLimit}}'</simple>
         </validate>
         <log loggingLevel="INFO" message="Get count from cache ${header.cid} documents near ${header.lat}, ${header.lng} in max distance ${header.distance} by user ${header.authorization}"/>
-        <!-- divide distance in meters by equatorial radius in meters -->        
-        <!--setHeader name="normalizedDistance">
-            <simple>${header.distance} / </simple>
-        </setHeader-->
+        <!-- divide distance in meters by equatorial radius in meters -->
         <process ref="MathProcessor"/>
         <setBody>
-            <!-- distance in radians --> 
+            <!-- distance in radians -->
             <simple>{ "geometry" : { $geoWithin: { $centerSphere: [ [ ${header.lng} , ${header.lat} ] , ${header.normalizedDistance} ] } } }</simple>
         </setBody>
         <recipientList>
@@ -252,7 +238,7 @@
         <setBody>
             <simple>{"count": ${body}}</simple>
         </setBody>
-        <removeHeaders pattern="*" excludePattern="normalizedDistance"/> 
+        <removeHeaders pattern="*"/>
     </route>
     <route id="Get nearby from cache and save">
         <from uri="seda:getNearbyFromCache"/>
@@ -271,6 +257,17 @@
             <json id="json" library="Jackson"/>
         </marshal>
         <!--process ref="MongodbJSonProcessor"/-->
-        <removeHeaders pattern="*"/> 
+        <removeHeaders pattern="*"/>
+    </route>
+    <route id="Log error">
+        <from uri="direct:logError"/>
+        <log logName="net.gmsworld.server.camel" loggingLevel="ERROR" message="Operation failed with exception: ${exception.stacktrace}"/>
+        <setBody>
+            <simple>{"error" : "Operation failed"}</simple>
+        </setBody>
+        <removeHeaders pattern="*"/>
+        <setHeader name="CamelHttpResponseCode">
+            <constant>500</constant>
+        </setHeader>
     </route>
 </routes>
