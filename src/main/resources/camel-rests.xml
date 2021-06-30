@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rests xmlns="http://camel.apache.org/schema/spring">
     <rest id="cache" path="/camel">
-        <get id="getFromCacheUnlimited" produces="application/json" uri="/v1/cache/{cid}">
+         <get id="ping" produces="application/json" uri="/v1/ping">
+            <route>
+               <setBody>
+                   <constant>{"ping": "pong"}</constant>
+               </setBody>
+               <removeHeaders pattern="*"/>    
+           </route>
+         </get>
+         <get id="getFromCacheUnlimited" produces="application/json" uri="/v1/cache/{cid}">
             <route>
                 <doTry>
                     <to uri="direct:getFromCacheUnlimited"/>
@@ -15,8 +23,8 @@
         <get id="getFromCacheAsync" produces="application/json" uri="/v1/cache/{cid}/async/{limit}">
             <route>
                 <setProperty name="did">
-            		<simple>${bean:UtilsBean.getTimestamp}_${header.limit}</simple>
-        		</setProperty>
+                    <simple>${bean:UtilsBean.getTimestamp}_${header.limit}</simple>
+                </setProperty>
                 <to uri="seda:getFromCache?waitForTaskToComplete=Never"/>
                 <removeHeaders pattern="*"/>
                 <setBody>
@@ -116,7 +124,7 @@
         <get id="getNearbyFromCacheAsync" produces="application/json" uri="/v1/cache/{cid}/async/nearby/{lat}/{lng}/{distance}/{limit}">
             <route>
                 <setProperty name="did">
-                      <simple>${header.lng}_${header.lat}_${header.distance}_${header.limit}</simple>
+                    <simple>${header.lng}_${header.lat}_${header.distance}_${header.limit}</simple>
                 </setProperty>
                 <to uri="seda:getNearbyFromCache?waitForTaskToComplete=Never"/>
                 <removeHeaders pattern="*"/>
@@ -140,8 +148,8 @@
             produces="application/json" uri="/v1/cache/{cid}/async/cheapest/nearby/{lat}/{lng}/{distance}/{limit}">
             <route>
                 <setProperty name="did">
-                      <simple>${header.lng}_${header.lat}_${header.distance}_${header.limit}_cheapest</simple>
-                </setProperty>  
+                    <simple>${header.lng}_${header.lat}_${header.distance}_${header.limit}_cheapest</simple>
+                </setProperty>
                 <to uri="seda:getCheapestNearbyFromCache?waitForTaskToComplete=Never"/>
                 <removeHeaders pattern="*"/>
                 <setBody>
@@ -164,7 +172,7 @@
             produces="application/json" uri="/v1/cache/{cid}/async/stars/nearby/{lat}/{lng}/{distance}/{limit}">
             <route>
                 <setProperty name="did">
-                      <simple>${header.lng}_${header.lat}_${header.distance}_${header.limit}_stars</simple>
+                    <simple>${header.lng}_${header.lat}_${header.distance}_${header.limit}_stars</simple>
                 </setProperty>
                 <to uri="seda:getStarsNearbyFromCache?waitForTaskToComplete=Never"/>
                 <removeHeaders pattern="*"/>
