@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rests xmlns="http://camel.apache.org/schema/spring">
     <rest id="cache" path="/camel">
-         <get id="ping" produces="application/json" uri="/v1/ping">
+        <get id="ping" produces="application/json" uri="/v1/ping">
             <route>
-               <setBody>
-                   <constant>{"ping": "pong"}</constant>
-               </setBody>
-               <removeHeaders pattern="*"/>    
-           </route>
-         </get>
-         <get id="getFromCacheUnlimited" produces="application/json" uri="/v1/cache/{cid}">
+                <setBody>
+                    <constant>{"ping": "pong"}</constant>
+                </setBody>
+                <removeHeaders pattern="*"/>
+            </route>
+        </get>
+        <get id="getFromCacheUnlimited" produces="application/json" uri="/v1/cache/{cid}">
             <route>
                 <doTry>
                     <to uri="direct:getFromCacheUnlimited"/>

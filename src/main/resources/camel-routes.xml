@@ -17,7 +17,7 @@
         </setBody>
         <removeHeaders pattern="*"/>
     </route>
-    <route id="_route1">
+    <route id="Insert record to collection">
         <from uri="direct:insertRecord"/>
         <recipientList>
             <simple>mongodb:camelMongoClient?database={{quarkus.mongodb.database}}&amp;collection=${header.cid}&amp;operation=save</simple>
