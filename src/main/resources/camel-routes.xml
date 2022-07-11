@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<routes id="DBClient" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns="http://camel.apache.org/schema/spring"
-        xsi:schemaLocation="http://camel.apache.org/schema/spring https://camel.apache.org/schema/spring/camel-spring.xsd">
+<routes id="DBClient" xmlns="http://camel.apache.org/schema/spring"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://camel.apache.org/schema/spring https://camel.apache.org/schema/spring/camel-spring.xsd">
     <!-- insert -->
     <route id="Put to cache">
         <from uri="direct:putToCache"/>
